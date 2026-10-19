@@ -1,0 +1,24 @@
+[project]
+name = "non-destructive-root-volume-estimation"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "mardhav-2008", email = "mardhavrayapati81@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "matplotlib>=3.11.2",
+    "numpy>=2.5.4",
+    "opencv-python>=5.0.0.93",
+    "pandas>=3.0.6",
+    "scikit-learn>=1.9.1",
+    "ultralytics>=8.4.182",
+]
+
+[project.scripts]
+non-destructive-root-volume-estimation = "non_destructive_root_volume_estimation:main"
+
+[build-system]
+requires = ["uv_build>=0.12.21,<0.13.0"]
+build-backend = "uv_build"
