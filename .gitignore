@@ -1,10 +1,23 @@
-# Python-generated files
-__pycache__/
-*.py[oc]
-build/
-dist/
-wheels/
-*.egg-info
+# Datasets
+data/
+train_labels/
+Train.csv
+Test.csv
+Sample_Submission.csv
 
-# Virtual environments
-.venv
+# Model weights
+Models/
+
+# Generated outputs
+outputs/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
