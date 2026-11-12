@@ -9,9 +9,9 @@ from sklearn.cluster import KMeans
 # Paths
 # ============================================================
 
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-DETECTIONS_PATH = PROJECT_ROOT / "yolo_detections.csv"
+DETECTIONS_PATH = PROJECT_ROOT / "outputs/yolo/yolo_detections.csv"
 TRAIN_PATH = PROJECT_ROOT / "Train.csv"
 
 
@@ -50,10 +50,7 @@ print()
 print("X POSITION QUANTILES")
 
 for q in np.linspace(0, 1, 11):
-    print(
-        f"{q:4.1f}: "
-        f"{x.quantile(q):.4f}"
-    )
+    print(f"{q:4.1f}: {x.quantile(q):.4f}")
 
 
 # ============================================================
@@ -66,10 +63,7 @@ print("2. HORIZONTAL CLUSTERING")
 print("=" * 70)
 
 for k in range(2, 11):
-
-    values = detections[
-        ["x_center_norm"]
-    ].dropna().values
+    values = detections[["x_center_norm"]].dropna().values
 
     model = KMeans(
         n_clusters=k,
@@ -79,17 +73,9 @@ for k in range(2, 11):
 
     model.fit(values)
 
-    centers = np.sort(
-        model.cluster_centers_.flatten()
-    )
+    centers = np.sort(model.cluster_centers_.flatten())
 
-    print(
-        f"k={k:2d}: "
-        + ", ".join(
-            f"{c:.3f}"
-            for c in centers
-        )
-    )
+    print(f"k={k:2d}: " + ", ".join(f"{c:.3f}" for c in centers))
 
 
 # ============================================================
@@ -102,18 +88,13 @@ print("3. EXAMPLE SCANS")
 print("=" * 70)
 
 scan_counts = (
-    detections
-    .groupby(["FolderName", "Side"])
-    .size()
-    .sort_values(ascending=False)
+    detections.groupby(["FolderName", "Side"]).size().sort_values(ascending=False)
 )
 
 print()
 print("Most detection-rich scan/side combinations:")
 
-print(
-    scan_counts.head(20)
-)
+print(scan_counts.head(20))
 
 
 # ============================================================
@@ -122,31 +103,20 @@ print(
 
 print()
 
-examples = (
-    scan_counts
-    .head(10)
-    .index
-)
+examples = scan_counts.head(10).index
 
 for folder, side in examples:
-
     subset = detections[
-        (detections["FolderName"] == folder)
-        & (detections["Side"] == side)
+        (detections["FolderName"] == folder) & (detections["Side"] == side)
     ]
 
     print()
     print("-" * 70)
     print(folder, side)
 
-    print(
-        "detections:",
-        len(subset)
-    )
+    print("detections:", len(subset))
 
-    print(
-        "x positions:"
-    )
+    print("x positions:")
 
     print(
         np.round(
@@ -189,32 +159,23 @@ merged = detections.merge(
 
 
 merged = merged[
-    (merged["Slice"] >= merged["Start"])
-    & (merged["Slice"] <= merged["End"])
+    (merged["Slice"] >= merged["Start"]) & (merged["Slice"] <= merged["End"])
 ].copy()
 
 
 print()
-print(
-    "Detection-observation matches:",
-    len(merged)
-)
+print("Detection-observation matches:", len(merged))
 
 
 if len(merged) > 0:
-
-    grouped = (
-        merged
-        .groupby("PlantNumber")["x_center_norm"]
-        .agg(
-            [
-                "count",
-                "mean",
-                "std",
-                "min",
-                "max",
-            ]
-        )
+    grouped = merged.groupby("PlantNumber")["x_center_norm"].agg(
+        [
+            "count",
+            "mean",
+            "std",
+            "min",
+            "max",
+        ]
     )
 
     print()
@@ -234,8 +195,7 @@ print("=" * 70)
 # calculate median detection x position.
 
 plant_positions = (
-    merged
-    .groupby(
+    merged.groupby(
         [
             "FolderName",
             "Side",
@@ -263,16 +223,11 @@ plant_positions = (
 # Only retain plant groups with at least
 # two detections.
 
-plant_positions = plant_positions[
-    plant_positions["detections"] >= 2
-].copy()
+plant_positions = plant_positions[plant_positions["detections"] >= 2].copy()
 
 
 print()
-print(
-    "Plant groups with >=2 detections:",
-    len(plant_positions)
-)
+print("Plant groups with >=2 detections:", len(plant_positions))
 
 
 # ============================================================
@@ -285,31 +240,19 @@ print("Per-scan ordering:")
 ordering_results = []
 
 
-for (folder, side), group in plant_positions.groupby(
-    ["FolderName", "Side"]
-):
-
+for (folder, side), group in plant_positions.groupby(["FolderName", "Side"]):
     if group["PlantNumber"].nunique() < 2:
         continue
 
-    ordered = group.sort_values(
-        "x_median"
-    )
+    ordered = group.sort_values("x_median")
 
-    plant_order = ordered[
-        "PlantNumber"
-    ].tolist()
+    plant_order = ordered["PlantNumber"].tolist()
 
-    x_order = ordered[
-        "x_median"
-    ].tolist()
+    x_order = ordered["x_median"].tolist()
 
     # Spearman-like rank correlation
     if len(plant_order) >= 2:
-
-        rank_corr = pd.Series(
-            plant_order
-        ).corr(
+        rank_corr = pd.Series(plant_order).corr(
             pd.Series(x_order),
             method="spearman",
         )
@@ -325,15 +268,12 @@ for (folder, side), group in plant_positions.groupby(
         )
 
 
-ordering = pd.DataFrame(
-    ordering_results
-)
+ordering = pd.DataFrame(ordering_results)
 
 
 print()
 
 if len(ordering) > 0:
-
     print(
         ordering[
             [
@@ -343,33 +283,20 @@ if len(ordering) > 0:
                 "rank_corr",
                 "plant_order",
             ]
-        ].head(30).to_string(index=False)
+        ]
+        .head(30)
+        .to_string(index=False)
     )
 
     print()
-    print(
-        "Mean rank correlation:",
-        ordering["rank_corr"].mean()
-    )
+    print("Mean rank correlation:", ordering["rank_corr"].mean())
 
-    print(
-        "Median rank correlation:",
-        ordering["rank_corr"].median()
-    )
+    print("Median rank correlation:", ordering["rank_corr"].median())
 
-    print(
-        "Fraction positive:",
-        (
-            ordering["rank_corr"] > 0
-        ).mean()
-    )
+    print("Fraction positive:", (ordering["rank_corr"] > 0).mean())
 
 else:
-
-    print(
-        "Not enough spatially matched "
-        "plant observations."
-    )
+    print("Not enough spatially matched plant observations.")
 
 
 # ============================================================
@@ -382,10 +309,8 @@ print("6. ROOT VOLUME VS DETECTION POSITION")
 print("=" * 70)
 
 if len(merged) > 0:
-
     obs_position = (
-        merged
-        .groupby(
+        merged.groupby(
             [
                 "FolderName",
                 "Side",
